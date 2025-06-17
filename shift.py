@@ -264,10 +264,11 @@ elif page == "ADMIN":
             all_reports = con.execute("""
                 SELECT personal_id, current_location, on_shift,
                        strftime('%d/%m/%Y %H:%M', 
-                                (timestamp || ' UTC') || ' +3 hours') as report_datetime
+                                datetime(CAST(timestamp AS TEXT), '+3 hours')) as report_datetime
                 FROM green_eyes
-                ORDER BY timestamp DESC
+                ORDER BY CAST(timestamp AS TEXT) DESC
             """).fetchall()
+
 
             
 
