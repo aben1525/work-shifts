@@ -263,11 +263,18 @@ elif page == "ADMIN":
             # הצגת כל הדיווחים עם המרה מפורשת ל-TIMESTAMP
             all_reports = con.execute("""
                 SELECT personal_id, current_location, on_shift,
+                       -- חיבור של השעה והדקות בתוספת 3 שעות
                        strftime('%d/%m/%Y %H:%M', 
-                                datetime(CAST(timestamp AS TEXT), '+3 hours')) as report_datetime
+                                substr(timestamp, 1, 10) || ' ' || 
+                                printf('%02d:%02d', 
+                                    (CAST(substr(timestamp, 12, 2) AS INTEGER) + 3) % 24,
+                                    CAST(substr(timestamp, 15, 2) AS INTEGER)
+                                )
+                       ) as report_datetime
                 FROM green_eyes
-                ORDER BY CAST(timestamp AS TEXT) DESC
+                ORDER BY timestamp DESC
             """).fetchall()
+
 
 
             
