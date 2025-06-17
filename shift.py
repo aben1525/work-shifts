@@ -262,11 +262,12 @@ elif page == "ADMIN":
         try:
             # הצגת כל הדיווחים עם המרה מפורשת ל-TIMESTAMP
             all_reports = con.execute("""
-            SELECT personal_id, current_location, on_shift,
-                   strftime('%d/%m/%Y %H:%M', CAST(timestamp AS TIMESTAMP)) as report_datetime
-            FROM green_eyes 
-            ORDER BY CAST(timestamp AS TIMESTAMP) DESC
-        """).fetchall()
+                SELECT personal_id, current_location, on_shift,
+                       strftime('%d/%m/%Y %H:%M', datetime(CAST(timestamp AS TIMESTAMP), '+3 hours')) as report_datetime
+                FROM green_eyes 
+                ORDER BY CAST(timestamp AS TIMESTAMP) DESC
+         """).fetchall()
+
 
 
 
