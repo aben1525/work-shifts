@@ -96,13 +96,13 @@ if page == "היכן אני כעת":
                 st.error("❌ נא למלא את כל השדות הנדרשים")
             else:
                 try:
-                 timestamp = datetime.now(ZoneInfo("Asia/Jerusalem")).strftime('%Y-%m-%d %H:%M:%S')
-                 
-                 con.execute("""
-                     INSERT OR REPLACE INTO green_eyes (
-                         personal_id, current_location, on_shift, timestamp
-                     ) VALUES (?, ?, ?, ?)
-                 """, (personal_id, current_location.strip(), on_shift, timestamp))
+                  timestamp = datetime.now(ZoneInfo("Asia/Jerusalem")).strftime('%Y-%m-%d %H:%M:%S')
+                  
+                  con.execute("""
+                      INSERT OR REPLACE INTO green_eyes (
+                          personal_id, current_location, on_shift, timestamp
+                      ) VALUES (?, ?, ?, ?)
+                  """, (personal_id, current_location.strip(), on_shift, timestamp))
                     
                     st.success(f"✅ דווח בהצלחה")
                     st.balloons()
