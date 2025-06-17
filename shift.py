@@ -43,7 +43,7 @@ def init_database():
         CREATE TABLE IF NOT EXISTS green_eyes (
             personal_id TEXT,
             current_location TEXT,
-            timestamp TIMESTAMP WITH TIME ZONE, 
+            timestamp TEXT, 
             on_shift TEXT,
             PRIMARY KEY (personal_id)
         )
