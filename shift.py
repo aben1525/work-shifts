@@ -96,7 +96,7 @@ if page == "היכן אני כעת":
                 st.error("❌ נא למלא את כל השדות הנדרשים")
             else:
                 try:
-                    timestamp = datetime.now(ZoneInfo("Asia/Jerusalem")).timestamp()
+                    timestamp = datetime.now(ZoneInfo("Asia/Jerusalem"))
                     con.execute("""
                         INSERT OR REPLACE INTO green_eyes (
                             personal_id, current_location, on_shift, timestamp
@@ -262,11 +262,11 @@ elif page == "ADMIN":
         try:
             # הצגת כל הדיווחים עם המרה מפורשת ל-TIMESTAMP
             all_reports = con.execute("""
-                SELECT personal_id, current_location, on_shift,
-                       strftime('%d/%m/%Y %H:%M', datetime(timestamp, 'unixepoch')) as report_datetime
-                FROM green_eyes 
-                ORDER BY timestamp DESC
-            """).fetchall()
+            SELECT personal_id, current_location, on_shift,
+                   strftime('%d/%m/%Y %H:%M', CAST(timestamp AS TIMESTAMP)) as report_datetime
+            FROM green_eyes 
+            ORDER BY CAST(timestamp AS TIMESTAMP) DESC
+        """).fetchall()
 
 
 
