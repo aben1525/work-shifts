@@ -96,9 +96,7 @@ if page == "היכן אני כעת":
                 st.error("❌ נא למלא את כל השדות הנדרשים")
             else:
                 try:
-                    # timestamp = datetime.now()
-                    current_time = datetime.now(ZoneInfo("Asia/Jerusalem")).time().replace(microsecond=0)
-                    timestamp = current_time
+                    timestamp = datetime.now(ZoneInfo("Asia/Jerusalem"))
                     con.execute("""
                         INSERT OR REPLACE INTO green_eyes (
                             personal_id, current_location, on_shift, timestamp
