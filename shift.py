@@ -97,7 +97,8 @@ if page == "היכן אני כעת":
             else:
                 try:
                     # timestamp = datetime.now()
-                    timestamp = datetime.now(ZoneInfo("Asia/Jerusalem"))
+                    current_time = datetime.now(ZoneInfo("Asia/Jerusalem")).time().replace(microsecond=0)
+                    timestamp = current_time
                     con.execute("""
                         INSERT OR REPLACE INTO green_eyes (
                             personal_id, current_location, on_shift, timestamp
