@@ -269,13 +269,6 @@ elif page == "ADMIN":
                 FROM green_eyes 
                 ORDER BY timestamp DESC
             """).fetchall()
-
-
-            
-
-
-
-
             
             # יצירת רשימת מי דיווח
             reported_ids = [report[0] for report in all_reports] if all_reports else []
