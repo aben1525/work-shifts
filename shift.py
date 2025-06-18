@@ -417,7 +417,7 @@ else:
             col3, col4 = st.columns(2)
             
             with col3:
-                replacement_person  = st.text_input("? מי חפף אותי בכניסה למשמרת:",placeholder="הכנס שם")
+                replacement_person  = st.text_input("? את מי חפפתי ביציאה מהמשמרת:",placeholder="הכנס שם")
 
             
             with col4:
