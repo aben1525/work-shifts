@@ -391,7 +391,7 @@ else:
                     work_location = st.text_input("פרט מיקום:", placeholder="הכנס מיקום")
             
             with col4:
-                replacing_who = st.text_input("? מי חפף אותי בכניסה למשמרת:",placeholder="הכנס שם")
+                replacing_who = st.text_input("? מי חפף אותי בכניסה למשמרת:",placeholder="לא הועברה חפיפה")
     
 
             current_date = datetime.now(ZoneInfo("Asia/Jerusalem")).date()
@@ -417,7 +417,7 @@ else:
             col3, col4 = st.columns(2)
             
             with col3:
-                replacement_person  = st.text_input("? את מי חפפתי ביציאה מהמשמרת:",placeholder="הכנס שם")
+                replacement_person  = st.text_input("? את מי חפפתי ביציאה מהמשמרת:",placeholder="לא הועברה חפיפה")
 
             
             with col4:
@@ -458,7 +458,7 @@ else:
             if required_fields_missing:
                 st.error(f"❌ נא למלא את השדות הנדרשים: {', '.join(required_fields_missing)}")
             if personal_id and not personal_id.isdigit():
-             st.error("הכנס רק ספרות.")    
+                st.error("הכנס רק ספרות.")    
             else:
                 try:
                     timestamp = datetime.now().isoformat()
