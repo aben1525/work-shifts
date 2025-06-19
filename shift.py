@@ -457,7 +457,7 @@ else:
                 required_fields_missing.append("מספר דיווחים")
             if required_fields_missing:
                 st.error(f"❌ נא למלא את השדות הנדרשים: {', '.join(required_fields_missing)}")
-            if personal_id and not personal_id.isdigit():
+            elif personal_id and not personal_id.isdigit():
                 st.error("הכנס רק ספרות.")    
             else:
                 try:
