@@ -582,8 +582,8 @@ else:
                 except Exception as e:
                     st.error(f"❌ שגיאה בשמירת הדיווח: {str(e)}")
 
-    # קו הפרדה
-    st.markdown("---")
+   
+    st.markdown("------")
 
 
         
