@@ -1,6 +1,6 @@
 import streamlit as st
 import duckdb
-from datetime import datetime, date, time
+from datetime import datetime, date, time, timedelta
 import pandas as pd
 from zoneinfo import ZoneInfo
 import os
@@ -10,7 +10,6 @@ from dotenv import load_dotenv
 load_dotenv()
 
 password = os.getenv("PASSWORD")
-
 
 # הגדרת הדף
 st.set_page_config(page_title="דיווח משמרת", layout="centered", page_icon="📝")
@@ -53,7 +52,13 @@ def init_database():
         st.error(f"שגיאה בהתחברות למסד הנתונים: {e}")
         return None
 
-
+# פונקציה לחישוב תאריכי השבוע
+def get_week_dates(target_date):
+    """חישוב תאריכי השבוע (ראשון עד ראשון) בהתבסס על תאריך נתון"""
+    days_since_sunday = (target_date.weekday() + 1) % 7
+    week_start = target_date - timedelta(days=days_since_sunday)
+    week_end = week_start + timedelta(days=6)
+    return week_start, week_end
 
 # בדיקה אם יש חיבור למסד נתונים
 con = init_database()
@@ -65,9 +70,7 @@ if con is None:
 st.sidebar.title("🧭 ניווט")
 page = st.sidebar.selectbox("בחר עמוד:", ["""דוח משמרת""", "היכן אני כעת", "ADMIN"])
 
-
 # עמוד היכן אני כעת
-
 if page == "היכן אני כעת":
     st.title("👀 היכן אני כעת")
     st.markdown("---")
@@ -96,7 +99,6 @@ if page == "היכן אני כעת":
                 st.error("❌ נא למלא את כל השדות הנדרשים")
             else:
                 try:
-                    # timestamp = datetime.now()
                     timestamp = datetime.now(ZoneInfo("Asia/Jerusalem")).strftime('%Y-%m-%d %H:%M:%S')
                     con.execute("""
                         INSERT OR REPLACE INTO green_eyes (
@@ -138,24 +140,39 @@ elif page == "ADMIN":
     # תפריט בדף ניהול
     admin_tab = st.selectbox("בחר סוג דיווח:", [
         "סיכום שעות עבודה", 
-        "היכן אני כעת - מעקב", 
+        "היכן אני כעת - מעקב",
+        "כל הדיווחים - משמרות", 
         "ניהול נתונים"
     ])
     
     if admin_tab == "סיכום שעות עבודה":
-        # הצגת דיווח שעות
-        st.subheader("📊 סיכום שעות עבודה השבוע")
+        # הצגת דיווח שעות עם בחירת שבוע
+        st.subheader("📊 סיכום שעות עבודה")
+        
+        # בחירת שבוע
+        col1, col2 = st.columns([2, 1])
+        
+        with col1:
+            # בחירת תאריך לחישוב השבוע
+            selected_date = st.date_input(
+                "בחר תאריך לחישוב השבוע:",
+                value=date.today(),
+                help="השבוע יחושב מהראשון עד הראשון הקרוב"
+            )
+        
+        with col2:
+            # כפתור לחזרה לשבוע הנוכחי
+            if st.button("🔄 שבוע נוכחי"):
+                selected_date = date.today()
+                st.rerun()
         
         try:
-            # חישוב תאריכי השבוע הנוכחי (ראשון עד ראשון)
-            today = date.today()
-            days_since_sunday = (today.weekday() + 1) % 7
-            week_start = today - pd.Timedelta(days=days_since_sunday)
-            week_end = week_start + pd.Timedelta(days=6)
+            # חישוב תאריכי השבוע על בסיס התאריך שנבחר
+            week_start, week_end = get_week_dates(selected_date)
             
-            st.info(f"השבוע: {week_start.strftime('%d/%m/%Y')} - {week_end.strftime('%d/%m/%Y')}")
+            st.info(f"השבוע הנבחר: {week_start.strftime('%d/%m/%Y')} - {week_end.strftime('%d/%m/%Y')}")
             
-            # שאילתה לחישוב שעות עבודה - מפושטת
+            # שאילתה לחישוב שעות עבודה
             hours_query = """
             WITH entry_exits AS (
                 SELECT 
@@ -252,7 +269,7 @@ elif page == "ADMIN":
                     chart_data = df.set_index('מ.א')['סה״כ שעות']
                     st.bar_chart(chart_data)
             else:
-                st.info("אין נתונים לשבוע הנוכחי")
+                st.info(f"אין נתונים לשבוע {week_start.strftime('%d/%m/%Y')} - {week_end.strftime('%d/%m/%Y')}")
                 
         except Exception as e:
             st.error(f"שגיאה בטעינת נתוני השעות: {str(e)}")
@@ -272,11 +289,6 @@ elif page == "ADMIN":
             # יצירת רשימת מי דיווח
             reported_ids = [report[0] for report in all_reports] if all_reports else []
         
-            # # מי לא דיווח
-            # not_reported = []
-            # for pid, name in personal_data.items():
-            #     if pid not in reported_ids:
-            #         not_reported.append((pid, name))
             reported_count = len(set(reported_ids))
             not_reported = 95 - reported_count
 
@@ -296,16 +308,95 @@ elif page == "ADMIN":
             ])
                 st.dataframe(df_reports, use_container_width=True, hide_index=True)
          
-            # # מי לא דיווח
-            # if not_reported:
-            #     st.subheader("⚠️ לא דיווחו על מיקום")
-            #     for pid in not_reported:
-            #         st.warning(f" (מ.א. {pid}) - לא דיווח על מיקום")
-            # else:
-            #     st.success("✅ כולם דיווחו על מיקום!")
             
         except Exception as e:
             st.error(f"שגיאה בטעינת נתוני היכן אני כעת: {str(e)}")
+    
+    elif admin_tab == "כל הדיווחים - משמרות":
+        st.subheader("📋 כל הדיווחים - כניסה ויציאה ממשמרת")
+        
+        try:
+            # טעינת כל הדיווחים
+            all_shift_reports = con.execute("""
+            SELECT 
+                report_type,
+                personal_id,
+                rahal,
+                work_location,
+                replacing_who,
+                replacement_person,
+                reports_count,
+                special_notes,
+                start_date,
+                start_time,
+                end_date,
+                end_time,
+                strftime('%d/%m/%Y %H:%M', CAST(timestamp AS TIMESTAMP)) as report_datetime
+            FROM reports 
+            ORDER BY CAST(timestamp AS TIMESTAMP) DESC
+            """).fetchall()
+            
+            if all_shift_reports:
+                # יצירת DataFrame
+                df_all_reports = pd.DataFrame(all_shift_reports, columns=[
+                    'סוג דיווח', 'מ.א', 'רח"ל', 'מיקום עבודה', 'מי חפף אותי', 
+                    'את מי חפפתי', 'מספר דיווחים', 'הערות מיוחדות', 
+                    'תאריך תחילה', 'שעת תחילה', 'תאריך סיום', 'שעת סיום', 'זמן דיווח'
+                ])
+                
+                # החלפת ערכי סוג הדיווח לעברית
+                df_all_reports['סוג דיווח'] = df_all_reports['סוג דיווח'].map({
+                    'entry': '🟢 כניסה',
+                    'exit': '🔴 יציאה'
+                })
+                
+                # הצגת סיכום
+                total_reports = len(df_all_reports)
+                entry_reports = len(df_all_reports[df_all_reports['סוג דיווח'] == '🟢 כניסה'])
+                exit_reports = len(df_all_reports[df_all_reports['סוג דיווח'] == '🔴 יציאה'])
+                
+                col1, col2, col3 = st.columns(3)
+                with col1:
+                    st.metric("סה״כ דיווחים", total_reports)
+                with col2:
+                    st.metric("דיווחי כניסה", entry_reports)
+                with col3:
+                    st.metric("דיווחי יציאה", exit_reports)
+                
+                # מסנן לפי סוג דיווח
+                report_filter = st.selectbox(
+                    "סנן לפי סוג דיווח:",
+                    ["הכל", "🟢 כניסה", "🔴 יציאה"]
+                )
+                
+                # סינון הנתונים
+                if report_filter != "הכל":
+                    filtered_df = df_all_reports[df_all_reports['סוג דיווח'] == report_filter]
+                else:
+                    filtered_df = df_all_reports
+                
+                # הצגת הטבלה
+                st.dataframe(
+                    filtered_df,
+                    use_container_width=True,
+                    hide_index=True
+                )
+                
+                # הורדת הנתונים כ-CSV
+                csv = filtered_df.to_csv(index=False, encoding='utf-8-sig')
+                st.download_button(
+                    label="💾 הורד כ-CSV",
+                    data=csv,
+                    file_name=f"shift_reports_{datetime.now().strftime('%Y%m%d_%H%M%S')}.csv",
+                    mime='text/csv'
+                )
+                
+            else:
+                st.info("אין דיווחים במערכת")
+                
+        except Exception as e:
+            st.error(f"שגיאה בטעינת דיווחי המשמרות: {str(e)}")
+    
     elif admin_tab == "ניהול נתונים":
         st.subheader("🗂️ ניהול נתונים")
         
@@ -376,10 +467,9 @@ else:
         with col1:
             personal_id = st.text_input("מ.א - ארבע ספרות אחרונות*", placeholder="הכנס מספר", max_chars=4 )
 
-
         
         with col2:
-            rahal = st.selectbox("""רח"ל""", ["ויסאם אסד" , "יובל שטפל" , "ירדן קרן", "דניאל הנו" , "נזיה הנו" , "אסף גבור" , "נתי שיינפלד","כנרת המבורגר","ישי ספיבק"])
+            rahal = st.selectbox("""רח"ל""", ["ויסאם אסד" , "יובל שטפל" , "ירדן קרן", "דניאל הנו" , "נזיה הנו" , "אסף גבור" , "נתי שיינפלד","כנרת המבורגר","ישי ספיבק","גלעד ששון"])
         
         # שדות ספציפיים לסוג דיווח
         if report_type == "entry":
@@ -495,25 +585,5 @@ else:
     # קו הפרדה
     st.markdown("---")
 
-with st.expander("ℹ️ הוראות שימוש"):
-        st.markdown("""
-        **איך להשתמש במערכת:**
-        
-        1. **בחר סוג דיווח** - כניסה או יציאה ממשמרת
-        2. **מלא את הפרטים הנדרשים** - שדות עם כוכבית (*) הם חובה
-        3. **ביציאה - ציין כמות הדיווחים שהעלית** - זה נתון חשוב למעקב
-        4. **התאריך והשעה נקבעים אוטומטית** - לא ניתן לשינוי
-        5. **לחץ על 'שלח דיווח'** לשמירה במערכת
-        
-        **הערות חשובות:**
-        - ✅ וודא שמספר האישי נכון
-        - ✅ במשמרת יציאה - חובה לציין כמות הדיווחים שהעלית
-        - ✅ התאריך והשעה נקבעים אוטומטית למועד הדיווח
-        - ✅ כתוב הערות מיוחדות במידת הצורך
-        - ✅ המערכת תשמור את הדיווח באופן אוטומטי
-        - 🔐 לגישה לדיווח שעות השתמש בתפריט הצד
-        """)
 
-# פוטר
-st.markdown("---")
-st.markdown("*מערכת דיווח משמרות - גרסה 2.2*")
+        
