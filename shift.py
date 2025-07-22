@@ -476,7 +476,7 @@ else:
             col3, col4 = st.columns(2)
             
             with col3:
-                work_location = st.selectbox("מיקום עבודה: , ["משגב","צניפים", "ג'וליס","אחר באישור הרח"ל"]")
+                work_location = st.selectbox("מיקום עבודה:" , ["משגב","צניפים", "ג'וליס","אחר באישור הרחל"])
                 
             with col4:
                 replacing_who = st.text_input("? מי חפף אותי בכניסה למשמרת:",placeholder="לא הועברה חפיפה")
