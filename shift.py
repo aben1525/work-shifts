@@ -495,7 +495,7 @@ else:
                 start_time = current_time
 
             # משתנים ריקים ליציאה
-            replacement_person = None
+            replacement_person = "לא הועברה חפיפה"
             reports_count = None
             end_date = None
             end_time = None
@@ -527,7 +527,7 @@ else:
 
             # משתנים ריקים לכניסה
             work_location = None
-            replacing_who = None
+            replacing_who = "לא הועברה חפיפה"
             start_date = None
             start_time = None
 
