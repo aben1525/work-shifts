@@ -172,7 +172,7 @@ elif page == "ADMIN":
             
             st.info(f"השבוע הנבחר: {week_start.strftime('%d/%m/%Y')} - {week_end.strftime('%d/%m/%Y')}")
             
-            # שאילתה לחישוב שעות עבודה
+            # שאילתה לחישוב שעות עבודה - מקובצת לפי עובד בלבד
             hours_query = """
             WITH entry_exits AS (
                 SELECT 
@@ -222,7 +222,7 @@ elif page == "ADMIN":
             )
             SELECT 
                 personal_id,
-                work_location,
+                STRING_AGG(DISTINCT work_location, ', ') as work_locations,
                 COUNT(*) as total_shifts,
                 COUNT(*) FILTER (WHERE hours_worked IS NOT NULL) as completed_shifts,
                 ROUND(SUM(COALESCE(hours_worked, 0)), 2) as total_hours,
@@ -230,7 +230,7 @@ elif page == "ADMIN":
                 MIN(start_date) as first_shift_date,
                 MAX(COALESCE(end_date, start_date)) as last_shift_date
             FROM calculated_hours
-            GROUP BY personal_id, work_location
+            GROUP BY personal_id
             ORDER BY total_hours DESC
             """
             
@@ -239,7 +239,7 @@ elif page == "ADMIN":
             if results:
                 # יצירת DataFrame להצגה
                 df = pd.DataFrame(results, columns=[
-                    'מ.א','מיקום עבודה' , 'סה״כ משמרות', 'משמרות שהושלמו', 
+                    'מ.א','מיקומי עבודה' , 'סה״כ משמרות', 'משמרות שהושלמו', 
                     'סה״כ שעות', 'ממוצע שעות למשמרת', 'תאריך ראשון', 'תאריך אחרון'
                 ])
                 
